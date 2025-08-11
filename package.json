@@ -1,0 +1,64 @@
+{
+  "name": "gameflip-listing-app",
+  "version": "1.0.0",
+  "description": "A desktop app to streamline Gameflip mass listings.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --windows",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "publish": "electron-builder --publish=always",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gameflip",
+    "automation",
+    "grow a garden",
+    "roblox"
+  ],
+  "author": "Joseph Woolley",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "electron-store": "^10.1.0",
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "appId": "com.jwgameflip.lister.app",
+    "productName": "Gameflip Bulk Lister",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "node_modules/**/*",
+      "gfapi/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jwool020",
+        "repo": "gameflip-bulk-lister"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": "nsis"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "target": "dmg"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": "AppImage"
+    }
+  }
+}

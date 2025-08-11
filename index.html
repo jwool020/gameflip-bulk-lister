@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Gameflip Listing Bot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            position: relative;
+        }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            animation: bgShift 20s ease-in-out infinite;
+        }
+        
+        @keyframes bgShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: #7c77c6 #1a1a2e;
+        }
+        
+        .content-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .content-wrapper::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        .content-wrapper::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #7c77c6, #ff77c6);
+            border-radius: 4px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c77c6 0%, #ff77c6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(124, 119, 198, 0.3);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(124, 119, 198, 0.3)); }
+            to { filter: drop-shadow(0 0 20px rgba(124, 119, 198, 0.6)); }
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(124, 119, 198, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #7c77c6, transparent);
+            animation: borderScan 3s linear infinite;
+        }
+        
+        @keyframes borderScan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            border-color: rgba(124, 119, 198, 0.4);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        h2 {
+            color: #7c77c6;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #7c77c6, #ff77c6);
+            border-radius: 2px;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #b8b8ff;
+            font-size: 0.9rem;
+        }
+        
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(124, 119, 198, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #7c77c6;
+            box-shadow: 
+                0 0 0 3px rgba(124, 119, 198, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        input::placeholder {
+            color: rgba(184, 184, 255, 0.5);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #7c77c6 0%, #ff77c6 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(124, 119, 198, 0.3);
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 119, 198, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: rgba(124, 119, 198, 0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(124, 119, 198, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button.secondary:hover:not(:disabled) {
+            background: rgba(124, 119, 198, 0.2);
+        }
+        
+        .drop-zone {
+            border: 2px dashed rgba(124, 119, 198, 0.4);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(124, 119, 198, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .drop-zone.dragover {
+            border-color: #7c77c6;
+            background: rgba(124, 119, 198, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .drop-zone.file-loaded {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .drop-zone-text {
+            font-size: 1.1rem;
+            color: #b8b8ff;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .drop-zone.file-loaded .drop-zone-text {
+            color: #00ff88;
+            font-weight: 500;
+        }
+        
+        .csv-preview {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .csv-preview.visible {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .csv-table th,
+        .csv-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(124, 119, 198, 0.2);
+            font-size: 0.85rem;
+        }
+        
+        .csv-table th {
+            background: rgba(124, 119, 198, 0.2);
+            font-weight: 600;
+            color: #b8b8ff;
+        }
+        
+        .csv-table tr:hover {
+            background: rgba(124, 119, 198, 0.1);
+        }
+        
+        .preview-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .rows-info {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .settings-row {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .delay-setting {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(124, 119, 198, 0.2);
+        }
+        
+        .delay-setting input {
+            width: 80px;
+            padding: 0.5rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(124, 119, 198, 0.3);
+        }
+        
+        .progress-section {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .progress-section.visible {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: progressShimmer 2s infinite;
+        }
+        
+        @keyframes progressShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c77c6, #ff77c6, #00ff88);
+            background-size: 200% 100%;
+            animation: progressGradient 3s ease infinite;
+            transition: width 0.5s ease;
+            width: 0%;
+            border-radius: 4px;
+        }
+        
+        @keyframes progressGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .stat-counters {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(124, 119, 198, 0.2);
+        }
+        
+        .stat-success { 
+            border-color: rgba(0, 255, 136, 0.3);
+            color: #00ff88; 
+        }
+        
+        .stat-failed { 
+            border-color: rgba(255, 100, 100, 0.3);
+            color: #ff6464; 
+        }
+        
+        .stat-pending { 
+            border-color: rgba(255, 255, 100, 0.3);
+            color: #ffff64; 
+        }
+        
+        .time-remaining {
+            font-weight: 600;
+            color: #7c77c6;
+            padding: 0.5rem 1rem;
+            background: rgba(124, 119, 198, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(124, 119, 198, 0.3);
+        }
+        
+        .logs-section {
+            flex-shrink: 0;
+            border-top: 1px solid rgba(124, 119, 198, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+        }
+        
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(124, 119, 198, 0.1);
+        }
+        
+        .logs-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(124, 119, 198, 0.3);
+            color: #b8b8ff;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+        
+        .logs-toggle:hover {
+            background: rgba(124, 119, 198, 0.2);
+        }
+        
+        #status {
+            max-height: 200px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: #e0e0e0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            display: none;
+            scrollbar-width: thin;
+            scrollbar-color: #7c77c6 #1a1a2e;
+        }
+        
+        #status.visible {
+            display: block;
+        }
+        
+        #status::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #status::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        #status::-webkit-scrollbar-thumb {
+            background: #7c77c6;
+            border-radius: 3px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-success { background: #00ff88; }
+        .status-warning { background: #ffff64; }
+        .status-error { background: #ff6464; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #7c77c6;
+            border-radius: 50%;
+            animation: float 6s linear infinite;
+        }
+        
+        @keyframes float {
+            0% { 
+                transform: translateY(100vh) rotate(0deg); 
+                opacity: 0; 
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { 
+                transform: translateY(-10px) rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="app-container">
+        <div class="content-wrapper">
+            <h1>🚀 Gameflip Quantum Lister</h1>
+            
+<div class="section">
+    <h2>🔐 API Configuration</h2>
+    <div class="form-group">
+        <label for="apiKeyInput">API Key</label>
+        <input type="text" id="apiKeyInput" placeholder="Enter your Gameflip API Key">
+    </div>
+    <div class="form-group">
+        <label for="apiSecretInput">API Secret</label>
+        <input type="password" id="apiSecretInput" placeholder="Enter your Gameflip API Secret">
+    </div>
+    <button id="saveCredentialsBtn">💾 Save Credentials</button>
+    <p id="credentialStatus" style="margin-top: 0.5rem; font-size: 0.9rem;"></p>
+</div>
+            
+            <div class="section">
+                <h2>📊 Data Management</h2>
+                
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-text" id="dropZoneText">
+                        📁 Drop your CSV file here or click to browse
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
+                        <button id="selectFileBtn" class="secondary">🗂️ Browse Files</button>
+                        <button id="clearFileBtn" class="secondary" style="display: none; background: rgba(255, 100, 100, 0.2); border-color: rgba(255, 100, 100, 0.3);">✖️ Clear</button>
+                    </div>
+                </div>
+
+                <div class="settings-row">
+                    <div class="delay-setting">
+                        <label for="delayInput">⏱️ Upload Delay:</label>
+                        <input type="number" id="delayInput" value="60" min="5" max="600">
+                        <span>seconds</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="exportResultsBtn" style="display: none;" class="secondary">📤 Export Results</button>
+                    </div>
+                </div>
+
+                <div class="csv-preview" id="csvPreview">
+                    <h2>📋 Preview</h2>
+                    <table class="csv-table" id="csvTable">
+                        <!-- Dynamically populated -->
+                    </table>
+                    <div class="preview-controls">
+                        <button id="showMoreBtn" class="secondary">⬇️ Show More</button>
+                        <button id="showLessBtn" class="secondary" style="display: none;">⬆️ Show Less</button>
+                        <span class="rows-info" id="rowsInfo"></span>
+                    </div>
+                </div>
+
+                <div class="progress-section" id="progressSection">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="stat-counters">
+                            <div class="stat-item stat-success">
+                                <span class="status-indicator status-success"></span>
+                                <span id="successCount">0</span> Success
+                            </div>
+                            <div class="stat-item stat-failed">
+                                <span class="status-indicator status-error"></span>
+                                <span id="failedCount">0</span> Failed
+                            </div>
+                            <div class="stat-item stat-pending">
+                                <span class="status-indicator status-warning"></span>
+                                <span id="pendingCount">0</span> Pending
+                            </div>
+                        </div>
+                        <div class="time-remaining" id="timeRemaining">⏱️ Ready</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+    <button id="startListingBtn" disabled>🚀 Launch Upload Sequence</button>
+    <button id="stopListingBtn" style="display: none;" class="secondary">⏹️ Stop Upload</button>
+</div>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <div class="logs-header">
+                <span>📋 System Logs</span>
+                <button class="logs-toggle" id="logsToggle">Show Logs</button>
+            </div>
+            <div id="status">Quantum systems online. Awaiting mission parameters...</div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+
+        // DOM Elements
+        const selectFileBtn = document.getElementById('selectFileBtn');
+        const startListingBtn = document.getElementById('startListingBtn');
+        const stopListingBtn = document.getElementById('stopListingBtn');
+        const statusDiv = document.getElementById('status');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiSecretInput = document.getElementById('apiSecretInput');
+        const saveCredentialsBtn = document.getElementById('saveCredentialsBtn');
+        const credentialStatus = document.getElementById('credentialStatus');
+        const dropZone = document.getElementById('dropZone');
+        const dropZoneText = document.getElementById('dropZoneText');
+        const csvPreview = document.getElementById('csvPreview');
+        const csvTable = document.getElementById('csvTable');
+        const showMoreBtn = document.getElementById('showMoreBtn');
+        const showLessBtn = document.getElementById('showLessBtn');
+        const rowsInfo = document.getElementById('rowsInfo');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const successCount = document.getElementById('successCount');
+        const failedCount = document.getElementById('failedCount');
+        const pendingCount = document.getElementById('pendingCount');
+        const timeRemaining = document.getElementById('timeRemaining');
+        const delayInput = document.getElementById('delayInput');
+        const logsToggle = document.getElementById('logsToggle');
+        const clearFileBtn = document.getElementById('clearFileBtn');
+        const exportResultsBtn = document.getElementById('exportResultsBtn');
+        
+        let selectedCsvPath = null;
+        let credentialsLoaded = false;
+        let csvData = null;
+        let showingRows = 5;
+        let totalItems = 0;
+        let processedItems = 0;
+        let uploadResults = [];
+
+        function clearLoadedFile() {
+            // Reset all file-related state
+            selectedCsvPath = null;
+            csvData = null;
+            showingRows = 5;
+            totalItems = 0;
+            processedItems = 0;
+            
+            // Reset UI elements
+            dropZone.classList.remove('file-loaded');
+            dropZoneText.textContent = '📁 Drop your CSV file here or click to browse';
+            csvPreview.classList.remove('visible');
+            progressSection.classList.remove('visible');
+            clearFileBtn.style.display = 'none';
+            
+            // Reset progress
+            progressFill.style.width = '0%';
+            successCount.textContent = '0';
+            failedCount.textContent = '0';
+            pendingCount.textContent = '0';
+            timeRemaining.textContent = '⏱️ Ready';
+            
+            // Reset export button
+            exportResultsBtn.style.display = 'none';
+            
+            checkButtons();
+        }
+
+        function setStatus(message) {
+            statusDiv.textContent = message;
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        function checkButtons() {
+            startListingBtn.disabled = !(selectedCsvPath && credentialsLoaded);
+        }
+
+        function updateProgress() {
+            if (totalItems === 0) return;
+            
+            const progress = (processedItems / totalItems) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            const remaining = totalItems - processedItems;
+            pendingCount.textContent = remaining;
+            
+            if (remaining > 0) {
+                const delaySeconds = parseInt(delayInput.value) || 120;
+                const estimatedSeconds = remaining * delaySeconds;
+                const minutes = Math.floor(estimatedSeconds / 60);
+                const seconds = estimatedSeconds % 60;
+                timeRemaining.textContent = `⏱️ ~${minutes}:${seconds.toString().padStart(2, '0')} remaining`;
+            } else {
+                timeRemaining.textContent = `✅ Mission Complete!`;
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const rows = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    rows.push(values);
+                }
+            }
+            
+            return { headers, rows };
+        }
+
+        function displayCSVPreview(data) {
+            csvTable.innerHTML = '';
+            
+            // Headers
+            const headerRow = csvTable.insertRow();
+            data.headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            // Data rows
+            const rowsToShow = Math.min(showingRows, data.rows.length);
+            for (let i = 0; i < rowsToShow; i++) {
+                const row = csvTable.insertRow();
+                data.rows[i].forEach(cell => {
+                    const td = row.insertCell();
+                    td.textContent = cell || '';
+                });
+            }
+            
+            // Update info and buttons
+            rowsInfo.textContent = `Showing ${rowsToShow} of ${data.rows.length} data entries`;
+            showMoreBtn.style.display = rowsToShow < data.rows.length ? 'inline-block' : 'none';
+            showLessBtn.style.display = showingRows > 5 ? 'inline-block' : 'none';
+            
+            csvPreview.classList.add('visible');
+        }
+
+        async function handleFileLoad(file) {
+            try {
+                const text = await file.text();
+                csvData = parseCSV(text);
+                displayCSVPreview(csvData);
+                
+                dropZone.classList.add('file-loaded');
+                dropZoneText.textContent = `✅ ${file.name} loaded • ${csvData.rows.length} items ready for upload`;
+                clearFileBtn.style.display = 'inline-block'; // Show clear button
+               
+               totalItems = csvData.rows.length;
+               processedItems = 0;
+               updateProgress();
+               
+               selectedCsvPath = file.path || file.name;
+               checkButtons();
+           } catch (error) {
+               alert('Error processing CSV file: ' + error.message);
+           }
+       }
+
+       // Drag & Drop functionality
+       dropZone.addEventListener('click', () => selectFileBtn.click());
+       
+       dropZone.addEventListener('dragover', (e) => {
+           e.preventDefault();
+           dropZone.classList.add('dragover');
+       });
+       
+       dropZone.addEventListener('dragleave', () => {
+           dropZone.classList.remove('dragover');
+       });
+       
+       dropZone.addEventListener('drop', async (e) => {
+           e.preventDefault();
+           dropZone.classList.remove('dragover');
+           
+           const files = e.dataTransfer.files;
+           if (files.length > 0 && files[0].name.endsWith('.csv')) {
+               await handleFileLoad(files[0]);
+           } else {
+               alert('Please drop a CSV file');
+           }
+       });
+
+       // CSV Preview controls
+       showMoreBtn.addEventListener('click', () => {
+           showingRows = Math.min(showingRows + 5, csvData.rows.length);
+           displayCSVPreview(csvData);
+       });
+       
+       showLessBtn.addEventListener('click', () => {
+           showingRows = Math.max(5, showingRows - 5);
+           displayCSVPreview(csvData);
+       });
+
+       // Logs toggle
+       logsToggle.addEventListener('click', () => {
+           const isVisible = statusDiv.classList.contains('visible');
+           statusDiv.classList.toggle('visible');
+           logsToggle.textContent = isVisible ? 'Show Logs' : 'Hide Logs';
+       });
+
+       // Clear file functionality
+       clearFileBtn.addEventListener('click', () => {
+           if (confirm('Are you sure you want to clear the loaded CSV file?')) {
+               clearLoadedFile();
+           }
+       });
+
+       // Load credentials on startup
+       window.addEventListener('DOMContentLoaded', async () => {
+           const credentials = await window.electronAPI.loadCredentials();
+           if (credentials && credentials.key) {
+               apiKeyInput.value = credentials.key;
+               apiSecretInput.value = credentials.secret;
+               credentialStatus.innerHTML = '<span class="status-indicator status-success"></span>Credentials loaded and ready';
+               credentialStatus.style.color = "#00ff88";
+               credentialsLoaded = true;
+           } else {
+               credentialStatus.innerHTML = '<span class="status-indicator status-warning"></span>Please configure your API credentials';
+               credentialStatus.style.color = "#ffff64";
+               credentialsLoaded = false;
+           }
+           checkButtons();
+       });
+
+       // Progress updates
+       window.electronAPI.onListingProgress((message) => {
+           setStatus(statusDiv.textContent + message);
+           
+           // Parse progress from messages
+           if (message.includes('✅ Success!')) {
+               const current = parseInt(successCount.textContent) + 1;
+               successCount.textContent = current;
+               processedItems++;
+               updateProgress();
+           } else if (message.includes('❌ FAILED:')) {
+               const current = parseInt(failedCount.textContent) + 1;
+               failedCount.textContent = current;
+               processedItems++;
+               updateProgress();
+           } else if (message.includes('UPLOAD COMPLETE')) {
+               timeRemaining.textContent = '🎉 Mission Complete!';
+               exportResultsBtn.style.display = 'inline-block';
+               
+               // Show notification
+               if ('Notification' in window && Notification.permission === 'granted') {
+                   new Notification('🚀 Gameflip Upload Complete!', {
+                       body: `✅ ${successCount.textContent} successful • ❌ ${failedCount.textContent} failed`,
+                       icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>',
+                       tag: 'gameflip-complete'
+                   });
+               }
+           }
+       });
+
+       // Save credentials
+       saveCredentialsBtn.addEventListener('click', async () => {
+           const apiKey = apiKeyInput.value.trim();
+           const apiSecret = apiSecretInput.value.trim();
+           if (!apiKey || !apiSecret) {
+               credentialStatus.innerHTML = '<span class="status-indicator status-error"></span>Both fields are required!';
+               credentialStatus.style.color = "#ff6464";
+               credentialsLoaded = false;
+           } else {
+               await window.electronAPI.saveCredentials(apiKey, apiSecret);
+               credentialStatus.innerHTML = '<span class="status-indicator status-success"></span>Credentials saved successfully!';
+               credentialStatus.style.color = "#00ff88";
+               credentialsLoaded = true;
+           }
+           checkButtons();
+       });
+
+       // File selection
+       selectFileBtn.addEventListener('click', async () => {
+           console.log('Browse button clicked!'); // DEBUG
+           
+           try {
+               console.log('Calling selectCsvFile...'); // DEBUG
+               const filePath = await window.electronAPI.selectCsvFile();
+               console.log('File path received:', filePath); // DEBUG
+               
+               if (filePath) {
+                   console.log('Reading file content...'); // DEBUG
+                   const text = await window.electronAPI.readCsvFile(filePath);
+                   console.log('File content length:', text.length); // DEBUG
+                   
+                   const mockFile = {
+                       name: filePath.split(/[\\/]/).pop(),
+                       path: filePath,
+                       text: () => Promise.resolve(text)
+                   };
+                   await handleFileLoad(mockFile);
+               } else {
+                   console.log('No file selected'); // DEBUG
+               }
+           } catch (error) {
+               console.error('Error in file selection:', error);
+               alert('Error: ' + error.message);
+           }
+       });
+
+startListingBtn.addEventListener('click', async () => {
+    // Show stop button, hide start button
+    startListingBtn.style.display = 'none';
+    stopListingBtn.style.display = 'inline-block';
+    
+    progressSection.classList.add('visible');
+    successCount.textContent = '0';
+    failedCount.textContent = '0';
+    processedItems = 0;
+    updateProgress();
+    
+    setStatus('🚀 Quantum systems initializing...\n🔗 Establishing secure connection to Gameflip...\n');
+    selectFileBtn.disabled = true;
+    saveCredentialsBtn.disabled = true;
+
+    try {
+        const delayMs = (parseInt(delayInput.value) || 60) * 1000;
+        const result = await window.electronAPI.startListing(
+            selectedCsvPath, 
+            apiKeyInput.value.trim(), 
+            apiSecretInput.value.trim(),
+            delayMs
+        );
+    } catch (error) {
+        setStatus(statusDiv.textContent + `\n💥 CRITICAL ERROR: ${error.message}`);
+        console.error('Error in startListing:', error);
+    } finally {
+        // Show start button, hide stop button
+        startListingBtn.style.display = 'inline-block';
+        stopListingBtn.style.display = 'none';
+        stopListingBtn.textContent = '⏹️ Stop Upload';
+        stopListingBtn.disabled = false;
+        
+        selectFileBtn.disabled = false;
+        saveCredentialsBtn.disabled = false;
+    }
+});
+       // Add this right after your existing startListingBtn.addEventListener block:
+
+// Add stop button click handler
+stopListingBtn.addEventListener('click', () => {
+    stopListingBtn.textContent = '⏹️ Stopping...';
+    stopListingBtn.disabled = true;
+    setStatus(statusDiv.textContent + '\n🛑 STOP REQUESTED - Finishing current upload...\n');
+    
+    // Send stop signal to backend
+    window.electronAPI.stopListing();
+});
+
+       // Request notification permission
+       if ('Notification' in window && Notification.permission === 'default') {
+           Notification.requestPermission();
+       }
+
+       // Add some interactive effects
+       document.addEventListener('mousemove', (e) => {
+           const particles = document.querySelectorAll('.particle');
+           particles.forEach((particle, index) => {
+               if (index % 3 === 0) { // Only affect every 3rd particle for performance
+                   const rect = particle.getBoundingClientRect();
+                   const dx = e.clientX - (rect.left + rect.width / 2);
+                   const dy = e.clientY - (rect.top + rect.height / 2);
+                   const distance = Math.sqrt(dx * dx + dy * dy);
+                   
+                   if (distance < 100) {
+                       const force = (100 - distance) / 100;
+                       particle.style.transform = `translate(${dx * force * 0.2}px, ${dy * force * 0.2}px)`;
+                   } else {
+                       particle.style.transform = '';
+                   }
+               }
+           });
+       });
+   </script>
+</body>
+</html>
